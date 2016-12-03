@@ -1,6 +1,9 @@
 // This program wobbles the screen continuously
 // thanks to an itnerrupt routine synchronised with the raster.
-.var page = $bb
+// The wobble is created by brutally taking pre-computed
+// values from vals. The variable valcount holds the
+// number of values.
+
 .var valcount = $0d
 
 *= $0801 "Basic Upstart"		
@@ -9,13 +12,6 @@
 * = $c000
 	//compiled program will reside on memory start from $c000 
 	//can be executed by writing sys 49152
-
-//	lda #$93
-//	jsr $ffd2	// call chrout to print clear screen char
-	
-	lda #$00	// start with page 0
-	sta page
-	sta page+1
 
 	// set interrupt vector
 	sei
@@ -45,14 +41,14 @@
 
 irq:
 	dec $d019	// ack irq
-	ldx count
+	ldx count	// count saves the current value between interrupts
 	lda vals,x
 	sta $d016
 	dex
 	bne end
 	ldx #valcount
 end:	stx count
-	jmp $ea31
+	jmp $ea31	// resume normal interrupt handling
 
 count:	.byte valcount	// holds our byte counter 
 vals:	.byte $00,$01,$02,$03,$04,$05,$06
